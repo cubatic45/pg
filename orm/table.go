@@ -95,9 +95,14 @@ type Table struct {
 func newTable(typ reflect.Type) *Table {
 	t := new(Table)
 	t.Type = typ
+	name := t.Type.Name()
+	index := strings.Index(name, "[")
+	if index > 0 {
+		name = name[:index]
+	}
 	t.zeroStruct = reflect.New(t.Type).Elem()
-	t.TypeName = internal.ToExported(t.Type.Name())
-	t.ModelName = internal.Underscore(t.Type.Name())
+	t.TypeName = internal.ToExported(name)
+	t.ModelName = internal.Underscore(name)
 	tableName := tableNameInflector(t.ModelName)
 	t.setName(quoteIdent(tableName))
 	t.Alias = quoteIdent(t.ModelName)
@@ -292,7 +297,7 @@ func (t *Table) addFields(typ reflect.Type, baseIndex []int) {
 	}
 }
 
-//nolint
+// nolint
 func (t *Table) newField(f reflect.StructField, index []int) *Field {
 	pgTag := tagparser.Parse(f.Tag.Get("pg"))
 
@@ -944,7 +949,7 @@ func (t *Table) mustM2MRelation(field *Field, pgTag *tagparser.Tag) bool {
 	return true
 }
 
-//nolint
+// nolint
 func (t *Table) tryRelationSlice(field *Field, pgTag *tagparser.Tag) bool {
 	if t.tryM2MRelation(field, pgTag) {
 		internal.Deprecated.Printf(
